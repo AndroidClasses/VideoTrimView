@@ -144,12 +144,12 @@ public class VideoFrameView extends RecyclerView implements TrimSourceInterface,
         }
     }
 
-    public float getStartInMs() {
+    public float getStartInSecond() {
         return computeHorizontalScrollOffset() / pixelsPerSecond;
     }
 
-    public long getVideoDurationInMs() {
-        return videoDurationInMs;
+    public float getVideoDurationInSecond() {
+        return videoDurationInMs / 1000f;
     }
 
     public void setWidthInSecond(float widthInSecond) {
@@ -314,8 +314,14 @@ public class VideoFrameView extends RecyclerView implements TrimSourceInterface,
 
             @Override
             protected void onPostExecute(Bitmap bitmap) {
-                bitmapCache.put(frameAtTime, bitmap);
-                imageView.setImageBitmap(bitmap);
+                if (null == bitmap) {
+                    // do nothing
+                } else if (0 == frameAtTime) {
+                    // do nothing
+                } else {
+                    bitmapCache.put(frameAtTime, bitmap);
+                    imageView.setImageBitmap(bitmap);
+                }
             }
         }
     }

@@ -18,14 +18,41 @@ package pgloaguen.com.library;
 
 import android.net.Uri;
 
+import java.io.File;
+
 /**
  * This specifies the contract between the view and the presenter.
  */
 public interface VideoTrimContract {
 
     interface View {
+        void layoutLeftCursor(int xLeft, int yTop, int xRight, int yBottom);
+        void layoutRightCursor(int xLeft, int yTop, int xRight, int yBottom);
+
+        void setTrimRange(float startInS, float endInS);
+
+        void notifyTrimWidthChanged(float second);
+
+        void notifyVideoSourceChanged(Uri uri);
+        void notifyVideoSourceChanged(File file);
+        void notifyVideoSourceChanged(String path);
+
+        void notifyCursorChanged(boolean left);
     }
 
     interface UserActionsListener {
+        void onLayout(int left, int top, int right, int bottom);
+
+        void onTouchEventDispatch(float startInSecond, float maxOffsetInSecond);
+
+        void updateTrimWidthInSecond(float second);
+
+        void updateVideoSource(Uri uri);
+        void updateVideoSource(File file);
+        void updateVideoSource(String path);
+
+        boolean onTouchDown(boolean isLeftCursor, boolean isRightCursor);
+
+        boolean onTouchDrag(float percent);
     }
 }

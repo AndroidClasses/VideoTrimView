@@ -11,8 +11,8 @@ import java.io.File;
 public interface TrimSourceInterface {
     View getView();
 
-    float getStartInMs();
-    long getVideoDurationInMs();
+    float getStartInSecond();
+    float getVideoDurationInSecond();
 
     void setWidthInSecond(float second);
 
