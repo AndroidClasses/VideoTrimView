@@ -12,37 +12,39 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import pgloaguen.com.library.VideoFrameView;
 import pgloaguen.com.library.VideoTrimView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     private static final int SELECT_VIDEO = 1000;
 
-    private VideoTrimView videoTrimView;
-    private TextView rangeTextView;
-    private VideoFrameView videoFrameView;
+    @Bind(R.id.videotrim) VideoTrimView videoTrimView;
+    @Bind(R.id.range) TextView rangeTextView;
+    @Bind(R.id.videoframe) VideoFrameView videoFrameView;
+
+    @OnClick(R.id.btn)
+    void onPickButtonClicked(View view) {
+        showPickVideoUi();
+    }
+
+    private MainContract.UserActionsListener mActionListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        videoTrimView = (VideoTrimView) findViewById(R.id.videotrim);
-        videoFrameView = (VideoFrameView) findViewById(R.id.videoframe);
-        rangeTextView = (TextView) findViewById(R.id.range);
-        findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                photoPickerIntent.setType("video/*");
-                startActivityForResult(photoPickerIntent, SELECT_VIDEO);
-            }
-        });
+        ButterKnife.bind(this);
+
+        mActionListener = new MainPresenter(this);
 
         videoTrimView.setOnTrimPositionListener(new VideoTrimView.onTrimPositionListener() {
             @Override
             public void onTrimPositionUpdated(float startInS, float endInS) {
-                rangeTextView.setText(startInS + " " + endInS);
+                mActionListener.updateTrimPosition(startInS, endInS);
             }
         });
     }
@@ -53,48 +55,63 @@ public class MainActivity extends AppCompatActivity {
 
         if(resultCode == RESULT_OK && requestCode == SELECT_VIDEO){
             Uri videoUri = data.getData();
-            videoTrimView.setVideo(videoUri);
-            videoTrimView.setWidthInSecond(15);
-
-            videoFrameView.setVideo(videoUri);
-            videoFrameView.setWidthInSecond(15);
-            videoFrameView.setDelegateAdapter(new VideoFrameView.FrameAdapterDelegate<FrameViewHolder>() {
-
-                private int selectedPosition = 0;
-
-                @Override
-                public FrameViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-                    return new FrameViewHolder(LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_frame, viewGroup, false));
-                }
-
-                @Override
-                public void onBindViewHolder(final FrameViewHolder viewHolder, final int i) {
-                    viewHolder.borderView.setVisibility( i != selectedPosition ? View.GONE : View.VISIBLE);
-                    viewHolder.imgView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            selectedPosition = i;
-                            videoFrameView.getAdapter().notifyDataSetChanged();
-                        }
-                    });
-                }
-
-                @Override
-                public ImageView getImageViewToDisplayFrame(FrameViewHolder viewHolder) {
-                    return viewHolder.imgView;
-                }
-
-                @Override
-                public int getPhotoWidth() {
-                    return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 128, getResources().getDisplayMetrics());
-                }
-            });
-
+            mActionListener.updateTrimmingVideoUrl(videoUri);
         }
     }
 
-    private static class FrameViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public void setTrimRangeText(String positionText) {
+        rangeTextView.setText(positionText);
+    }
 
+    @Override
+    public void resetTrimView(Uri videoUri, int trimStepDuration) {
+        videoTrimView.setVideo(videoUri);
+        videoTrimView.setWidthInSecond(trimStepDuration);
+
+    }
+
+    @Override
+    public void resetVideoView(Uri videoUri, int trimStepDuration) {
+        videoFrameView.setVideo(videoUri);
+        videoFrameView.setWidthInSecond(trimStepDuration);
+
+        videoFrameView.setDelegateAdapter(new VideoFrameView.FrameAdapterDelegate<FrameViewHolder>() {
+            @Override
+            public FrameViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+                return new FrameViewHolder(LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_frame, viewGroup, false));
+            }
+
+            @Override
+            public void onBindViewHolder(final FrameViewHolder viewHolder, final int i) {
+                int borderVisibility = mActionListener.testSelectedIndex(i) ? View.VISIBLE : View.GONE;
+                viewHolder.borderView.setVisibility(borderVisibility);
+                viewHolder.imgView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mActionListener.updateSelectedIndex(i);
+                    }
+                });
+            }
+
+            @Override
+            public ImageView getImageViewToDisplayFrame(FrameViewHolder viewHolder) {
+                return viewHolder.imgView;
+            }
+
+            @Override
+            public int getPhotoWidth() {
+                return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 128, getResources().getDisplayMetrics());
+            }
+        });
+    }
+
+    @Override
+    public void notifySelectedIndexChanged() {
+        videoFrameView.getAdapter().notifyDataSetChanged();
+    }
+
+    private static class FrameViewHolder extends RecyclerView.ViewHolder {
         private ImageView imgView;
         private View borderView;
 
@@ -103,5 +120,11 @@ public class MainActivity extends AppCompatActivity {
             imgView = (ImageView) itemView.findViewById(R.id.img);
             borderView = itemView.findViewById(R.id.border);
         }
+    }
+
+    private void showPickVideoUi() {
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("video/*");
+        startActivityForResult(photoPickerIntent, SELECT_VIDEO);
     }
 }
