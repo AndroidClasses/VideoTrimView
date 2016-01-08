@@ -52,6 +52,7 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
         mCursorLeftView = new ImageView(getContext());
         mCursorRightView = new ImageView(getContext());
         gestureDetector = new GestureDetector(getContext(), this);
+        initFrameHost(getContext());
     }
 
     @Override
@@ -183,7 +184,7 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
 //    private VideoFrameView videoFrameView;
     private FrameHost mFrameHost;
     private void initFrameHost(Context context) {
-        mFrameHost = new VideoFrameView(getContext());
+        mFrameHost = new VideoFrameView(context);
     }
 
     float getLeftOffsetInSecond() {
