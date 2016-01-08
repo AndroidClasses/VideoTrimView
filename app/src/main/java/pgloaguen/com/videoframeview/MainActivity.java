@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Bind(R.id.videotrim) VideoTrimView videoTrimView;
     @Bind(R.id.range) TextView rangeTextView;
-    @Bind(R.id.videoframe) VideoFrameView videoFrameView;
+//    @Bind(R.id.videoframe) VideoFrameView videoFrameView;
 
     @OnClick(R.id.btn)
     void onPickButtonClicked(View view) {
@@ -73,54 +73,54 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void resetVideoView(Uri videoUri, int trimStepDuration) {
-        videoFrameView.setVideo(videoUri);
-        videoFrameView.setWidthInSecond(trimStepDuration);
-
-        videoFrameView.setDelegateAdapter(new VideoFrameView.FrameAdapterDelegate<FrameViewHolder>() {
-            @Override
-            public FrameViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-                return new FrameViewHolder(LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_frame, viewGroup, false));
-            }
-
-            @Override
-            public void onBindViewHolder(final FrameViewHolder viewHolder, final int i) {
-                int borderVisibility = mActionListener.testSelectedIndex(i) ? View.VISIBLE : View.GONE;
-                viewHolder.borderView.setVisibility(borderVisibility);
-                viewHolder.imgView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mActionListener.updateSelectedIndex(i);
-                    }
-                });
-            }
-
-            @Override
-            public ImageView getImageViewToDisplayFrame(FrameViewHolder viewHolder) {
-                return viewHolder.imgView;
-            }
-
-            @Override
-            public int getPhotoWidth() {
-                return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 128, getResources().getDisplayMetrics());
-            }
-        });
+//        videoFrameView.setVideo(videoUri);
+//        videoFrameView.setWidthInSecond(trimStepDuration);
+//
+//        videoFrameView.setDelegateAdapter(new VideoFrameView.FrameAdapterDelegate<FrameViewHolder>() {
+//            @Override
+//            public FrameViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+//                return new FrameViewHolder(LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_frame, viewGroup, false));
+//            }
+//
+//            @Override
+//            public void onBindViewHolder(final FrameViewHolder viewHolder, final int i) {
+//                int borderVisibility = mActionListener.testSelectedIndex(i) ? View.VISIBLE : View.GONE;
+//                viewHolder.borderView.setVisibility(borderVisibility);
+//                viewHolder.imgView.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        mActionListener.updateSelectedIndex(i);
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public ImageView getImageViewToDisplayFrame(FrameViewHolder viewHolder) {
+//                return viewHolder.imgView;
+//            }
+//
+//            @Override
+//            public int getPhotoWidth() {
+//                return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 128, getResources().getDisplayMetrics());
+//            }
+//        });
     }
 
     @Override
     public void notifySelectedIndexChanged() {
-        videoFrameView.getAdapter().notifyDataSetChanged();
+//        videoFrameView.getAdapter().notifyDataSetChanged();
     }
 
-    private static class FrameViewHolder extends RecyclerView.ViewHolder {
-        private ImageView imgView;
-        private View borderView;
-
-        public FrameViewHolder(View itemView) {
-            super(itemView);
-            imgView = (ImageView) itemView.findViewById(R.id.img);
-            borderView = itemView.findViewById(R.id.border);
-        }
-    }
+//    private static class FrameViewHolder extends RecyclerView.ViewHolder {
+//        private ImageView imgView;
+//        private View borderView;
+//
+//        public FrameViewHolder(View itemView) {
+//            super(itemView);
+//            imgView = (ImageView) itemView.findViewById(R.id.img);
+//            borderView = itemView.findViewById(R.id.border);
+//        }
+//    }
 
     private void showPickVideoUi() {
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);

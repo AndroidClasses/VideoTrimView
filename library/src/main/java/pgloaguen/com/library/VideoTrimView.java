@@ -15,8 +15,6 @@ import java.io.File;
  * Created by root on 13/08/15.
  */
 public class VideoTrimView extends FrameLayout implements GestureDetector.OnGestureListener {
-
-    private VideoFrameView videoFrameView;
     private ImageView mCursorLeftView;
     private ImageView mCursorRightView;
 
@@ -50,7 +48,7 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     }
 
     private void init() {
-        videoFrameView = new VideoFrameView(getContext());
+//        videoFrameView = new VideoFrameView(getContext());
         mCursorLeftView = new ImageView(getContext());
         mCursorRightView = new ImageView(getContext());
         gestureDetector = new GestureDetector(getContext(), this);
@@ -59,7 +57,7 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        addView(videoFrameView);
+        addView(mFrameHost.getView());
 
         View borderView = new View(getContext());
         borderView.setBackgroundResource(R.drawable.border_trim_video);
@@ -89,9 +87,10 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (hasAVideo) {
-            float startInSecond = videoFrameView.getStartInMs();
+            float startInSecond = getLeftOffsetInSecond();
+            float maxOffsetInSecond = getMaxiOffsetInSecond();
             onTrimPositionListener.onTrimPositionUpdated(startInSecond + (widthInSecond * cursorLeftX),
-                    Math.min(videoFrameView.getVideoDurationInMs() / 1000f, startInSecond + (widthInSecond * cursorRightX)));
+                    Math.min(maxOffsetInSecond, startInSecond + (widthInSecond * cursorRightX)));
         }
 
         if(!gestureDetector.onTouchEvent(event)) {
@@ -104,7 +103,7 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     public void setWidthInSecond(float second) {
         widthInSecond = second;
         minBetweenCursorInPercent =  minTrimInSecond / widthInSecond;
-        videoFrameView.setWidthInSecond(second);
+        mFrameHost.setWidthInSecond(second);
     }
 
     public void setOnTrimPositionListener(onTrimPositionListener listener) {
@@ -113,17 +112,17 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
 
     public void setVideo(Uri uri) {
         hasAVideo = uri != null;
-        videoFrameView.setVideo(uri);
+        mFrameHost.setVideo(uri);
     }
 
     public void setVideo(File file) {
         hasAVideo = file != null;
-        videoFrameView.setVideo(file);
+        mFrameHost.setVideo(file);
     }
 
     public void setVideo(String path) {
         hasAVideo = path != null;
-        videoFrameView.setVideo(path);
+        mFrameHost.setVideo(path);
     }
 
     private boolean isCursorLeftTouch(float x) {
@@ -179,5 +178,18 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
 
     public interface onTrimPositionListener {
         void onTrimPositionUpdated(float startInS, float endInS);
+    }
+
+//    private VideoFrameView videoFrameView;
+    private FrameHost mFrameHost;
+    private void initFrameHost(Context context) {
+        mFrameHost = new VideoFrameView(getContext());
+    }
+
+    float getLeftOffsetInSecond() {
+        return mFrameHost.getStartInMs();
+    }
+    private float getMaxiOffsetInSecond() {
+        return mFrameHost.getVideoDurationInMs() / 1000f;
     }
 }

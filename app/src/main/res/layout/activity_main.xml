@@ -7,7 +7,10 @@
     <pgloaguen.com.library.VideoTrimView
         android:id="@+id/videotrim"
         android:layout_width="match_parent"
-        android:layout_height="72dp"/>
+        android:layout_height="72dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        />
 
     <Button android:id="@+id/btn"
         android:layout_width="wrap_content"
@@ -25,11 +28,11 @@
         android:text="-"
         android:padding="16dp"/>
 
-    <pgloaguen.com.library.VideoFrameView
-        android:id="@+id/videoframe"
-        android:layout_below="@id/range"
-        android:layout_width="match_parent"
-        android:background="#000"
-        android:layout_height="136dp"/>
+    <!--<pgloaguen.com.library.VideoFrameView-->
+        <!--android:id="@+id/videoframe"-->
+        <!--android:layout_below="@id/range"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:background="#000"-->
+        <!--android:layout_height="136dp"/>-->
 
 </RelativeLayout>
