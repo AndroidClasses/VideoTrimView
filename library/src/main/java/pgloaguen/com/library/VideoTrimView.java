@@ -14,7 +14,7 @@ import java.io.File;
 /**
  * Created by root on 13/08/15.
  */
-public class VideoTrimView extends FrameLayout implements GestureDetector.OnGestureListener {
+public class VideoTrimView extends FrameLayout implements GestureDetector.OnGestureListener, VideoTrimContract.View {
     private ImageView mCursorLeftView;
     private ImageView mCursorRightView;
 
@@ -31,6 +31,8 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     private onTrimPositionListener onTrimPositionListener;
 
     private boolean hasAVideo;
+
+    VideoTrimContract.UserActionsListener mActionListener;
 
     public VideoTrimView(Context context) {
         super(context);
@@ -49,15 +51,18 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
 
     private void init() {
 //        videoFrameView = new VideoFrameView(getContext());
+        mActionListener = new VideoTrimPresenter(this);
         mCursorLeftView = new ImageView(getContext());
         mCursorRightView = new ImageView(getContext());
         gestureDetector = new GestureDetector(getContext(), this);
         initFrameHost(getContext());
+
     }
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+
         addView(mFrameHost.getView());
 
         View borderView = new View(getContext());
@@ -75,14 +80,14 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
-        int heigth = bottom - top;
+        int height = bottom - top;
         int width = (right - left);
 
         int rightCursorLeftPosition = (int) ((cursorLeftX * width) + demiCursorWidth);
-        mCursorLeftView.layout(rightCursorLeftPosition - width, 0, rightCursorLeftPosition, heigth);
+        mCursorLeftView.layout(rightCursorLeftPosition - width, 0, rightCursorLeftPosition, height);
 
         int leftCursorRightPosition = (int) ((cursorRightX * width) - demiCursorWidth);
-        mCursorRightView.layout(leftCursorRightPosition, 0, leftCursorRightPosition + width, heigth);
+        mCursorRightView.layout(leftCursorRightPosition, 0, leftCursorRightPosition + width, height);
     }
 
     @Override
@@ -182,7 +187,7 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     }
 
 //    private VideoFrameView videoFrameView;
-    private FrameHost mFrameHost;
+    private TrimSourceInterface mFrameHost;
     private void initFrameHost(Context context) {
         mFrameHost = new VideoFrameView(context);
     }

@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * Created by root on 12/08/15.
  */
-public class VideoFrameView extends RecyclerView implements FrameHost {
+public class VideoFrameView extends RecyclerView implements TrimSourceInterface, VideoFrameContract.View {
 
     private static final String KEY_PARENT_PARCELABLE = "key_parent_parcelable";
     private static final String KEY_PATH_VIDEO = "key_path_video";

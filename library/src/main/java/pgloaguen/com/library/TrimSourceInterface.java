@@ -8,7 +8,7 @@ import java.io.File;
 /**
  * Created by yangfeng on 16-1-8.
  */
-public interface FrameHost {
+public interface TrimSourceInterface {
     View getView();
 
     float getStartInMs();
