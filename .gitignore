@@ -5,3 +5,39 @@
 .DS_Store
 /build
 /captures
+# http://www.kernel.org/pub/software/scm/git/docs/gitignore.html
+# ignore this file
+.gitignore
+# ignore all .svn folder.
+.svn/
+
+# ignore eclipse project file
+.classpath
+.project
+project.properties
+bin/
+
+# ignore idea project folder
+.idea/
+
+# ignore temp output folder
+gen/
+out/
+obj/
+
+*.iml
+
+.gradle
+build/
+
+.settings/
+xcdebugger/
+
+db_files
+
+org.eclipse.core.resources.prefs
+org.eclipse.jdt.core.prefs
+.factorypath
+local.properties
+gradle/
+gradlew
