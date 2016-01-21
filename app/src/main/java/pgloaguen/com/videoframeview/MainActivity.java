@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int SELECT_VIDEO = 1000;
 
+    private VideoTrimView fillVideoTrimView;
     private VideoTrimView videoTrimView;
     private TextView rangeTextView;
     private VideoFrameView videoFrameView;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         videoTrimView = (VideoTrimView) findViewById(R.id.videotrim);
+        fillVideoTrimView = (VideoTrimView) findViewById(R.id.fillvideotrim);
         videoFrameView = (VideoFrameView) findViewById(R.id.videoframe);
         rangeTextView = (TextView) findViewById(R.id.range);
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
@@ -39,12 +41,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        videoTrimView.setOnTrimPositionListener(new VideoTrimView.onTrimPositionListener() {
+        VideoTrimView.onTrimPositionListener listener = new VideoTrimView.onTrimPositionListener() {
             @Override
             public void onTrimPositionUpdated(float startInS, float endInS) {
                 rangeTextView.setText(startInS + " " + endInS);
             }
-        });
+        };
+        fillVideoTrimView.setOnTrimPositionListener(listener);
+        videoTrimView.setOnTrimPositionListener(listener);
     }
 
     @Override
@@ -55,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
             Uri videoUri = data.getData();
             videoTrimView.setVideo(videoUri);
             videoTrimView.setWidthInSecond(15);
+            fillVideoTrimView.setVideo(videoUri);
+            fillVideoTrimView.setWidthInSecond(-1);
 
             videoFrameView.setVideo(videoUri);
             videoFrameView.setWidthInSecond(15);

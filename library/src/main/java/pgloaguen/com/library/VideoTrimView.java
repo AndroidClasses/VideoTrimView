@@ -22,17 +22,28 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
 
     private GestureDetector gestureDetector;
 
-    private final float minTrimInSecond = 3;
-    private float widthInSecond = 15;
-    private float minBetweenCursorInPercent = minTrimInSecond / widthInSecond;
+    private float widthInSecond = 15f;
+
+    private final static float MIN_TRIM_IN_SECOND = 3f;
+    private static final float MIN_BETWEEN_CURSOR_IN_PERCENT = 0.1f;
+
+    private static final int DEMI_CURSOR_WIDTH = 40;
 
     private float cursorLeftX = 0f;
     private float cursorRightX = 1.0f;
-    private int demiCursorWidth = 40;
 
     private onTrimPositionListener onTrimPositionListener;
 
     private boolean hasAVideo;
+
+    private float getMinTrimInSecond() {
+        float trimPercent = MIN_TRIM_IN_SECOND / widthInSecond;
+        if (trimPercent < MIN_BETWEEN_CURSOR_IN_PERCENT) {
+            return trimPercent;
+        } else {
+            return MIN_BETWEEN_CURSOR_IN_PERCENT;
+        }
+    }
 
     public VideoTrimView(Context context) {
         super(context);
@@ -79,19 +90,23 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
         int heigth = bottom - top;
         int width = (right - left);
 
-        int rightCursorLeftPosition = (int) ((cursorLeftX * width) + demiCursorWidth);
+        int rightCursorLeftPosition = (int) ((cursorLeftX * width) + DEMI_CURSOR_WIDTH);
         mCursorLeftView.layout(rightCursorLeftPosition - width, 0, rightCursorLeftPosition, heigth);
 
-        int leftCursorRightPosition = (int) ((cursorRightX * width) - demiCursorWidth);
+        int leftCursorRightPosition = (int) ((cursorRightX * width) - DEMI_CURSOR_WIDTH);
         mCursorRightView.layout(leftCursorRightPosition, 0, leftCursorRightPosition + width, heigth);
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (hasAVideo) {
-            float startInSecond = videoFrameView.getStartInMs();
-            onTrimPositionListener.onTrimPositionUpdated(startInSecond + (widthInSecond * cursorLeftX),
-                    Math.min(videoFrameView.getVideoDurationInMs() / 1000f, startInSecond + (widthInSecond * cursorRightX)));
+            float leftCursorUSecond = getLeftCursorOffset();
+            float rightCursorUSecond = getRightCursorOffset();
+            float rightestScrollOffset = videoFrameView.getVideoDurationInSecond() * US_PER_SECOND;
+
+            float startUSecond = Math.max(0, leftCursorUSecond);
+            float endUSecond = Math.min(rightestScrollOffset, rightCursorUSecond);
+            onTrimPositionListener.onTrimPositionUpdated(startUSecond, endUSecond);
         }
 
         if(!gestureDetector.onTouchEvent(event)) {
@@ -102,9 +117,14 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     }
 
     public void setWidthInSecond(float second) {
+        float maxDuration = videoFrameView.getVideoDurationInSecond();
+        if (0 < second && second < maxDuration) {
         widthInSecond = second;
-        minBetweenCursorInPercent =  minTrimInSecond / widthInSecond;
-        videoFrameView.setWidthInSecond(second);
+        } else {
+            widthInSecond = maxDuration;
+        }
+
+        videoFrameView.setWidthInSecond(widthInSecond);
     }
 
     public void setOnTrimPositionListener(onTrimPositionListener listener) {
@@ -148,12 +168,12 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         if (isCursorLeftTriggeredScroll) {
             cursorLeftX -= distanceX/getWidth();
-            cursorLeftX = Math.max(Math.min(cursorLeftX, cursorRightX - minBetweenCursorInPercent), 0f);
+            cursorLeftX = Math.max(Math.min(cursorLeftX, cursorRightX - getMinTrimInSecond()), 0f);
             requestLayout();
             return true;
         } else if (isCursorRightTriggeredScroll) {
             cursorRightX -= distanceX/getWidth();
-            cursorRightX = Math.min(Math.max(cursorRightX, cursorLeftX + minBetweenCursorInPercent), 1.0f);
+            cursorRightX = Math.min(Math.max(cursorRightX, cursorLeftX + getMinTrimInSecond()), 1.0f);
             requestLayout();
             return true;
         } else {
@@ -175,6 +195,15 @@ public class VideoTrimView extends FrameLayout implements GestureDetector.OnGest
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         return false;
+    }
+
+    private static final long US_PER_SECOND = 1000000l;
+    public long getLeftCursorOffset() {
+        return (long)(videoFrameView.getStartInSecond() + cursorLeftX * widthInSecond * US_PER_SECOND);
+    }
+
+    public long getRightCursorOffset() {
+        return (long) (videoFrameView.getStartInSecond() + cursorRightX * widthInSecond * US_PER_SECOND);
     }
 
     public interface onTrimPositionListener {

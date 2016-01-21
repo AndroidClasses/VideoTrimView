@@ -27,6 +27,8 @@ public class VideoFrameView extends RecyclerView {
     private static final String KEY_PATH_VIDEO = "key_path_video";
     private static final String KEY_URI_VIDEO = "key_uri_video";
 
+    private static final long U_SECONDS_PER_MS = 1000l;
+    private static final long U_SECONDS_PER_SECOND = 1000000l;
     private MyMediaMetadataRetriever mediaMetadataRetriever;
     private Uri uri;
     private String path;
@@ -144,16 +146,22 @@ public class VideoFrameView extends RecyclerView {
         }
     }
 
-    public float getStartInMs() {
+    public float getStartInSecond() {
         return computeHorizontalScrollOffset() / pixelsPerSecond;
     }
 
-    public long getVideoDurationInMs() {
-        return videoDurationInMs;
+    private static final float SECONDS_PER_MS = 0.001f;
+    public float getVideoDurationInSecond() {
+        return SECONDS_PER_MS * videoDurationInMs;
     }
 
     public void setWidthInSecond(float widthInSecond) {
-        this.widthInSecond = widthInSecond;
+        float durationInSecond = getVideoDurationInSecond();
+        if (0 < widthInSecond && widthInSecond < durationInSecond) {
+            this.widthInSecond = widthInSecond;
+        } else {
+            this.widthInSecond = durationInSecond;
+        }
     }
 
     private static class MyMediaMetadataRetriever extends MediaMetadataRetriever {
@@ -179,10 +187,11 @@ public class VideoFrameView extends RecyclerView {
 
     private static class DefaultFrameAdapterDelegate extends FrameAdapterDelegate<DefaultFrameAdapterDelegate.ViewHolderDelegate> {
 
+        private static final int DEFAULT_FRAME_WIDTH_PIXELS = 80;
         @Override
         public ViewHolderDelegate onCreateViewHolder(ViewGroup viewGroup, int i) {
             ImageView photoView = new ImageView(viewGroup.getContext());
-            photoView.setLayoutParams(new LayoutParams(120, ViewGroup.LayoutParams.MATCH_PARENT));
+            photoView.setLayoutParams(new LayoutParams(DEFAULT_FRAME_WIDTH_PIXELS, ViewGroup.LayoutParams.MATCH_PARENT));
             photoView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             return new ViewHolderDelegate(photoView);
         }
@@ -197,7 +206,7 @@ public class VideoFrameView extends RecyclerView {
 
         @Override
         public int getPhotoWidth() {
-            return 120;
+            return DEFAULT_FRAME_WIDTH_PIXELS;
         }
 
         public static class ViewHolderDelegate extends RecyclerView.ViewHolder {
@@ -233,7 +242,13 @@ public class VideoFrameView extends RecyclerView {
                 viewHolder.extractBitmap.cancel(true);
             }
 
-            long frameAtInUSecond = Math.min((long) (adapterDelegate.getPhotoWidth() / pixelsPerSecond) * i * 1000000l, videoDurationInMs * 1000l);
+            int frameWidthInPixel = adapterDelegate.getPhotoWidth();
+            double frameWidthInSecond = frameWidthInPixel / pixelsPerSecond;
+            double frameWidthInUSecond = frameWidthInSecond * U_SECONDS_PER_SECOND;
+            long targetFrameUSecond = (long) (frameWidthInUSecond * i);
+            long durationInUSecond = videoDurationInMs * U_SECONDS_PER_MS;
+
+            long frameAtInUSecond = Math.min(targetFrameUSecond, durationInUSecond);
 
             Bitmap bitmap = bitmapCache.get(frameAtInUSecond);
             adapterDelegate.getImageViewToDisplayFrame(viewHolder.viewHolderDelegate).setImageBitmap(bitmap);
@@ -250,7 +265,10 @@ public class VideoFrameView extends RecyclerView {
 
         @Override
         public int getItemCount() {
-            return (int) Math.ceil((videoDurationInMs / (adapterDelegate.getPhotoWidth()  / pixelsPerSecond) / 1000f));
+            double durationInSecond = videoDurationInMs * SECONDS_PER_MS;
+            double durationInPixels = durationInSecond * pixelsPerSecond;
+            double durationToPhotoWidth = durationInPixels / adapterDelegate.getPhotoWidth();
+            return (int) Math.ceil(durationToPhotoWidth);
         }
 
         public void setPixelsPerSecond(float nbPixelsForOneSecond) {
@@ -284,11 +302,19 @@ public class VideoFrameView extends RecyclerView {
                 this.frameAtTime = frameAtTime;
             }
 
-            private Bitmap scaleBitmapAndKeepRation(Bitmap TargetBmp,int reqHeightInPixels,int reqWidthInPixels)
+            private Bitmap scaleBitmapAndKeepRation(Bitmap bitmap,int reqHeightInPixels,int reqWidthInPixels)
             {
-                Matrix m = new Matrix();
-                m.setRectToRect(new RectF(0, 0, TargetBmp.getWidth(), TargetBmp.getHeight()), new RectF(0, 0, reqWidthInPixels, reqHeightInPixels), Matrix.ScaleToFit.CENTER);
-                return Bitmap.createBitmap(TargetBmp, 0, 0, TargetBmp.getWidth(), TargetBmp.getHeight(), m, true);
+                if (null == bitmap) {
+                    return bitmap;
+                } else {
+                    Matrix m = new Matrix();
+                    int originWidth = bitmap.getWidth();
+                    int originHeight = bitmap.getHeight();
+                    m.setRectToRect(new RectF(0, 0, originWidth, originHeight),
+                            new RectF(0, 0, reqWidthInPixels, reqHeightInPixels), Matrix.ScaleToFit.CENTER);
+                    return Bitmap.createBitmap(bitmap, 0, 0, originWidth,
+                            originHeight, m, true);
+                }
             }
 
             @Override
@@ -314,7 +340,9 @@ public class VideoFrameView extends RecyclerView {
 
             @Override
             protected void onPostExecute(Bitmap bitmap) {
+                if (null != bitmap) {
                 bitmapCache.put(frameAtTime, bitmap);
+                }
                 imageView.setImageBitmap(bitmap);
             }
         }
